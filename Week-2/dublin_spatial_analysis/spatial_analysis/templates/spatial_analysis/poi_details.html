@@ -1,0 +1,146 @@
+```html
+{% extends 'spatial_analysis/base.html' %}
+{% block title %}{{ poi.poi_name }} - POI Details{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+
+    <!-- POI Heading -->
+    <h1>{{ poi.poi_name }}</h1>
+    <p class="text-muted">
+        {{ poi.get_poi_type_display }}
+    </p>
+
+    <div class="row mt-4">
+
+        <!-- POI Information -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-body">
+
+                    <h5 class="card-title">Point of Interest Details</h5>
+
+                    <p class="card-text">
+                        {{ poi.description }}
+                    </p>
+
+                    <hr>
+
+                    <p>
+                        <strong>Type:</strong>
+                        {{ poi.get_poi_type_display }}
+                    </p>
+
+                    <p>
+                        <strong>Rating:</strong>
+                        {% if poi.rating %}
+                            ⭐ {{ poi.rating }}
+                        {% else %}
+                            No rating available
+                        {% endif %}
+                    </p>
+
+                    <p>
+                        <strong>Visitors per day:</strong>
+                        {% if poi.visitors_per_day %}
+                            {{ poi.visitors_per_day }}
+                        {% else %}
+                            Not available
+                        {% endif %}
+                    </p>
+
+                    {% if poi.geom %}
+                    <p>
+                        <strong>Longitude:</strong>
+                        {{ poi.geom.x }}
+                    </p>
+
+                    <p>
+                        <strong>Latitude:</strong>
+                        {{ poi.geom.y }}
+                    </p>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Nearby Roads -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+
+                    <h5 class="card-title">Nearby Roads</h5>
+
+                    {% if nearby_roads %}
+                        <ul class="list-group list-group-flush">
+
+                            {% for road in nearby_roads %}
+                            <li class="list-group-item">
+
+                                <strong>{{ road.road_name }}</strong>
+
+                                <br>
+
+                                <small class="text-muted">
+                                    {{ road.get_road_type_display }}
+                                </small>
+
+                                <br>
+
+                                <small>
+                                    Speed Limit:
+                                    {{ road.speed_limit }} km/h
+                                </small>
+
+                            </li>
+                            {% endfor %}
+
+                        </ul>
+
+                    {% else %}
+
+                        <p class="text-muted">
+                            No nearby roads found.
+                        </p>
+
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Location -->
+    {% if poi.geom %}
+    <div class="card mb-4">
+        <div class="card-body">
+
+            <h5 class="card-title">Location</h5>
+
+            <p>
+                This point of interest is located at:
+            </p>
+
+            <p>
+                <strong>Latitude:</strong> {{ poi.geom.y }}<br>
+                <strong>Longitude:</strong> {{ poi.geom.x }}
+            </p>
+
+        </div>
+    </div>
+    {% endif %}
+
+
+    <!-- Back Button -->
+    <a href="{% url 'spatial_analysis:dashboard' %}"
+       class="btn btn-secondary mb-5">
+        ← Back to Dashboard
+    </a>
+
+</div>
+{% endblock %}
+```
