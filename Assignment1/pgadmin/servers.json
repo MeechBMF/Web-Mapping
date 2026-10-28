@@ -1,0 +1,13 @@
+{
+    "Servers": {
+      "1": {
+        "Name": "PostGIS (appnet)",
+        "Group": "Servers",
+        "Host": "db",
+        "Port": 5432,
+        "MaintenanceDB": "appdb",
+        "Username": "appuser",
+        "SSLMode": "prefer"
+      }
+    }
+  }

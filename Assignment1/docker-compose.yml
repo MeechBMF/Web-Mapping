@@ -1,0 +1,94 @@
+name: assignment1
+
+services:
+  db:
+    build: ./db
+    image: assignment1-postgis:16
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      appnet:
+        ipv4_address: 172.28.0.10
+    # No "ports:" -> database is NOT reachable from the host, only from appnet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    security_opt: ["no-new-privileges:true"]
+
+  web:
+    build: .
+    image: assignment1-django:latest
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    expose:
+      - "8000"
+    networks:
+      appnet:
+        ipv4_address: 172.28.0.20
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+
+  nginx:
+    build: ./nginx
+    image: assignment1-nginx:latest
+    restart: unless-stopped
+    depends_on:
+      - web
+    ports:
+      - "8080:8080"
+    volumes:
+      - static_volume:/var/www/static:ro
+      - media_volume:/var/www/media:ro
+    networks:
+      appnet:
+        ipv4_address: 172.28.0.30
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+
+  pgadmin:
+    build: ./pgadmin
+    image: assignment1-pgadmin:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: "True"
+    ports:
+      - "127.0.0.1:5050:80"   # bound to localhost only
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      appnet:
+        ipv4_address: 172.28.0.40
+    security_opt: ["no-new-privileges:true"]
+
+networks:
+  appnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+          gateway: 172.28.0.1
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+  static_volume:
+  media_volume:
